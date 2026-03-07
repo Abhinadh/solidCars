@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-light text-dark font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .clip-path-slant {
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
+  }
+}
+
+/* Slick Carousel Overrides */
+.slick-dots li button:before {
+  color: #fff !important;
+  font-size: 12px !important;
+}
+
+.slick-prev, .slick-next {
+  z-index: 10;
+  width: 40px !important;
+  height: 40px !important;
+}
+.slick-prev {
+  left: 20px !important;
+}
+.slick-next {
+  right: 20px !important;
+}
