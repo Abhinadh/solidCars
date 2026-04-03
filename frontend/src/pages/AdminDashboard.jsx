@@ -153,10 +153,10 @@ const AdminDashboard = () => {
       }
 
       if (editingCarId) {
-        const { data } = await axios.put(`http://localhost:5000/api/cars/${editingCarId}`, formData, config);
+        const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/cars/${editingCarId}`, formData, config);
         setCars(cars.map(c => c._id === editingCarId ? data : c));
       } else {
-        const { data } = await axios.post('http://localhost:5000/api/cars', formData, config);
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/cars`, formData, config);
         setCars([data, ...cars]);
       }
 
