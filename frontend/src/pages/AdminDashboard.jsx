@@ -325,7 +325,7 @@ const AdminDashboard = () => {
                       {cars.map((car) => (
                         <tr key={car._id} className="hover:bg-gray-800/50 transition-colors">
                           <td className="p-4">
-                            <img src={car.images && car.images[0] ? `http://localhost:5000${car.images[0]}` : 'https://via.placeholder.com/80x60'} alt={`${car.brand} ${car.model}`} className="w-16 h-12 object-cover rounded-md" />
+                            <img src={car.images && car.images[0] ? `${import.meta.env.VITE_API_URL}${car.images[0]}` : 'https://via.placeholder.com/80x60'} alt={`${car.brand} ${car.model}`} className="w-16 h-12 object-cover rounded-md" />
                           </td>
                           <td className="p-4">
                             <p className="font-bold text-white">{car.brand} {car.model} {car.variant}</p>
