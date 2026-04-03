@@ -52,7 +52,7 @@ const getCarById = async (req, res) => {
 const createCar = async (req, res) => {
   try {
     const {
-      title, brand, model, year, price, category,
+      brand, model, variant, year, price, category,
       transmission, fuel, ownership, kmDriven, location,
       features, description
     } = req.body;
@@ -61,7 +61,6 @@ const createCar = async (req, res) => {
     const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
     const car = new Car({
-      title,
       brand,
       model,
       year: Number(year),
@@ -92,19 +91,19 @@ const createCar = async (req, res) => {
 const updateCar = async (req, res) => {
   try {
     const {
-      title, brand, model, year, price, category,
+      brand, model, variant, year, price, category,
       transmission, fuel, ownership, kmDriven, location,
-      features, description
+      features, description, removeImages
     } = req.body;
 
     const car = await Car.findById(req.params.id);
 
     if (car) {
-      car.title = title || car.title;
       car.brand = brand || car.brand;
       car.model = model || car.model;
-      car.year = year ? Number(year) : car.year;
-      car.price = price ? Number(price) : car.price;
+      car.variant = variant || car.variant;
+      car.year = year || car.year;
+      car.price = price || car.price;
       car.category = category || car.category;
       car.transmission = transmission || car.transmission;
       car.fuel = fuel || car.fuel;
@@ -117,6 +116,10 @@ const updateCar = async (req, res) => {
       }
       
       if (description !== undefined) car.description = description;
+
+      if (removeImages === 'true') {
+        car.images = [];
+      }
 
       // Handle new uploaded images
       if (req.files && req.files.length > 0) {

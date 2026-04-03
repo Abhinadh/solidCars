@@ -183,13 +183,13 @@ const CarDetails = () => {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-dark p-2.5 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-lg z-10"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-dark p-3 rounded-full transition-all shadow-md z-10"
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-dark p-2.5 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-lg z-10"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-dark p-3 rounded-full transition-all shadow-md z-10"
                       >
                         <ChevronRight className="w-5 h-5" />
                       </button>
@@ -255,14 +255,23 @@ const CarDetails = () => {
               )}
             </div>
 
-            {/* Right: Price & Specs */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 sticky top-28 overflow-hidden">
-
-                {/* Header strip */}
-                <div className="bg-secondary px-7 py-6">
-                  <h1 className="text-xl font-bold text-white mb-0.5">{car.title}</h1>
-                  <p className="text-slate-400 text-sm">{car.year} · {car.brand} {car.model}</p>
+            {/* Right Column (Price & Specs) */}
+            <div className="lg:col-span-1 space-y-6">
+              
+              {/* Header Card */}
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 sticky top-28">
+                <div className="mb-6">
+                  <h1 className="text-3xl font-bold text-dark mb-2">{car.brand} {car.model}</h1>
+                  <p className="text-gray-500 text-lg mb-1">{car.year} • {car.variant}</p>
+                  <p className="text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-4 h-4 overflow-visible" /> 
+                    {car.location || "Location not provided"}
+                  </p>
+                </div>
+                
+                <div className="py-6 border-y border-gray-100 mb-6">
+                  <span className="block text-sm font-medium text-gray-500 uppercase tracking-widest mb-1">Our Price</span>
+                  <span className="text-4xl font-bold text-primary">{formattedPrice}</span>
                 </div>
 
                 <div className="p-7">
