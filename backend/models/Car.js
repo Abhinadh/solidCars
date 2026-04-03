@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const carSchema = new mongoose.Schema({
-  title: {
+  variant: {
     type: String,
     required: true
   },
@@ -24,7 +24,7 @@ const carSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Sedan', 'Hatchback', 'SUV', 'Coupe', 'Convertible', 'Wagon', 'Van', 'Truck']
+    enum: ['Sedan', 'Hatchback', 'SUV', 'Coupe', 'Convertible', 'Wagon', 'Van', 'Truck', 'Other']
   },
   transmission: {
     type: String,
