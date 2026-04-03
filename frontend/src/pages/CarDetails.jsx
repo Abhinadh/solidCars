@@ -3,19 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, 
-  MapPin, 
-  Calendar, 
-  Settings, 
-  Droplet, 
-  User, 
-  Gauge, 
-  ChevronLeft, 
+import {
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  Settings,
+  Droplet,
+  User,
+  Gauge,
+  ChevronLeft,
   ChevronRight,
   Phone,
   Mail,
-  Share2
+  ArrowLeft,
 } from 'lucide-react';
 
 const CarDetails = () => {
@@ -27,7 +27,7 @@ const CarDetails = () => {
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/cars/${id}`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/cars/${id}`);
         setCar(data);
       } catch (error) {
         console.error('Error fetching car details:', error);
@@ -35,25 +35,27 @@ const CarDetails = () => {
         setLoading(false);
       }
     };
-
     fetchCar();
     window.scrollTo(0, 0);
   }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
+      <div className="min-h-screen pt-20 flex justify-center items-center bg-light">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-primary" />
+          <p className="text-slate-400 text-sm">Loading vehicle details...</p>
+        </div>
       </div>
     );
   }
 
   if (!car) {
     return (
-      <div className="min-h-screen pt-28 flex flex-col items-center justify-center text-center px-4">
+      <div className="min-h-screen pt-28 flex flex-col items-center justify-center text-center px-4 bg-light">
         <h2 className="text-3xl font-bold text-dark mb-4">Car Not Found</h2>
-        <p className="text-gray-500 mb-8 max-w-md">The vehicle you are looking for might have been sold or removed from our inventory.</p>
-        <Link to="/cars" className="bg-primary text-white px-8 py-3 rounded-xl font-medium hover:bg-red-700 transition-colors">
+        <p className="text-slate-500 mb-8 max-w-md">The vehicle you are looking for might have been sold or removed from our inventory.</p>
+        <Link to="/cars" className="bg-primary text-secondary px-8 py-3 rounded-xl font-bold hover:bg-amber-400 transition-colors">
           Browse All Cars
         </Link>
       </div>
@@ -67,45 +69,103 @@ const CarDetails = () => {
   }).format(car.price);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2066&auto=format&fit=crop';
-  const images = car.images && car.images.length > 0 
-    ? car.images.map(img => `http://localhost:5000${img}`) 
-    : [fallbackImage, fallbackImage, fallbackImage]; // Fallbacks for gallery
+  const images = car.images && car.images.length > 0
+    ? car.images.map(img => `${import.meta.env.VITE_API_URL}${img}`)
+    : [fallbackImage, fallbackImage, fallbackImage];
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
+  const nextImage = () => setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  const prevImage = () => setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
 
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
+  const specs = [
+    { Icon: Calendar, label: 'Year', value: car.year },
+    { Icon: Gauge, label: 'Mileage', value: `${car.kmDriven?.toLocaleString()} km` },
+    { Icon: Settings, label: 'Transmission', value: car.transmission },
+    { Icon: Droplet, label: 'Fuel Type', value: car.fuel },
+    { Icon: User, label: 'Owners', value: car.ownership },
+    { Icon: MapPin, label: 'Location', value: car.location },
+  ];
 
   return (
     <>
       <Helmet>
         <title>{`${car.year} ${car.brand} ${car.model}`} | Solid Cars</title>
-        <meta name="description" content={`Check out this ${car.year} ${car.brand} ${car.model} available now at Solid Cars.`} />
+        <meta name="description" content={`Check out this ${car.year} ${car.brand} ${car.model} available now at Solid Cars. ${car.kmDriven} km, ${car.fuel} fuel, ${car.transmission} transmission.`} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:title" content={`${car.year} ${car.brand} ${car.model} | Solid Cars`} />
+        <meta property="og:description" content={`Find this ${car.year} ${car.brand} ${car.model} at Solid Cars. Price: ${formattedPrice}. Inspect today!`} />
+        <meta property="og:image" content={images[0]} />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={window.location.href} />
+        <meta property="twitter:title" content={`${car.year} ${car.brand} ${car.model} | Solid Cars`} />
+        <meta property="twitter:description" content={`Check out this ${car.year} ${car.brand} ${car.model} at Solid Cars. Price: ${formattedPrice}.`} />
+        <meta property="twitter:image" content={images[0]} />
+
+        {/* Structured Data (JSON-LD) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org/",
+            "@type": "Car",
+            "name": `${car.year} ${car.brand} ${car.model}`,
+            "image": images,
+            "description": car.description,
+            "brand": {
+              "@type": "Brand",
+              "name": car.brand
+            },
+            "model": car.model,
+            "modelDate": car.year,
+            "fuelType": car.fuel,
+            "vehicleTransmission": car.transmission,
+            "mileageFromOdometer": {
+              "@type": "QuantitativeValue",
+              "value": car.kmDriven,
+              "unitCode": "KMT"
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": window.location.href,
+              "priceCurrency": "INR",
+              "price": car.price,
+              "availability": "https://schema.org/InStock",
+              "itemCondition": "https://schema.org/UsedCondition"
+            }
+          })}
+        </script>
       </Helmet>
-      
-      <div className="bg-gray-50 min-h-screen pb-20 pt-28">
+
+      <div className="bg-light min-h-screen pb-20 pt-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* Breadcrumb */}
-          <nav className="text-sm font-medium text-gray-500 mb-6 flex items-center gap-2">
-            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-            <span>/</span>
-            <Link to="/cars" className="hover:text-primary transition-colors">Inventory</Link>
-            <span>/</span>
-            <span className="text-dark">{car.brand} {car.model}</span>
+          <nav className="flex items-center gap-2 text-sm text-slate-400 mb-8">
+            <Link to="/" className="hover:text-secondary transition-colors">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <Link to="/cars" className="hover:text-secondary transition-colors">Inventory</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-dark font-medium">{car.brand} {car.model}</span>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            
-            {/* Left Column (Images & Details) */}
-            <div className="lg:col-span-2 space-y-8">
-              
+          {/* Back button */}
+          <Link
+            to="/cars"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-secondary font-medium mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Inventory
+          </Link>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            {/* Left: Images & Info */}
+            <div className="lg:col-span-2 space-y-6">
+
               {/* Image Gallery */}
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 p-2">
-                <div className="relative h-[400px] md:h-[500px] rounded-xl overflow-hidden bg-gray-100 group">
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 p-3">
+                <div className="relative h-[380px] md:h-[480px] rounded-xl overflow-hidden bg-slate-100 group">
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentImageIndex}
@@ -118,42 +178,50 @@ const CarDetails = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   </AnimatePresence>
-                  
-                  {/* Slider Controls */}
+
                   {images.length > 1 && (
                     <>
-                      <button 
+                      <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-dark p-3 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-md z-10"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-dark p-2.5 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-lg z-10"
                       >
-                        <ChevronLeft className="w-6 h-6" />
+                        <ChevronLeft className="w-5 h-5" />
                       </button>
-                      <button 
+                      <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-dark p-3 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-md z-10"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-dark p-2.5 rounded-full md:opacity-0 md:group-hover:opacity-100 transition-all shadow-lg z-10"
                       >
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-5 h-5" />
                       </button>
                     </>
                   )}
-                  
+
                   {/* Badges */}
-                  <div className="absolute top-6 left-6 flex gap-2 z-10">
-                    <span className="bg-primary text-white py-1.5 px-4 rounded-full text-xs font-bold shadow-lg uppercase tracking-wider">
+                  <div className="absolute top-5 left-5 flex gap-2 z-10">
+                    <span className="bg-secondary/90 backdrop-blur-sm text-primary py-1.5 px-4 rounded-lg text-xs font-bold uppercase tracking-wider">
                       {car.category}
                     </span>
                   </div>
+
+                  {/* Image counter */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-5 right-5 bg-black/50 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+                      {currentImageIndex + 1} / {images.length}
+                    </div>
+                  )}
                 </div>
 
                 {/* Thumbnails */}
                 {images.length > 1 && (
-                  <div className="flex gap-4 mt-4 overflow-x-auto pb-2 px-2 scrollbar-hide">
+                  <div className="flex gap-3 mt-3 overflow-x-auto pb-1 scrollbar-hide px-1">
                     {images.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setCurrentImageIndex(idx)}
-                        className={`flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                          currentImageIndex === idx ? 'border-primary shadow-md opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
+                        className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                          currentImageIndex === idx
+                            ? 'border-primary shadow-md opacity-100'
+                            : 'border-transparent opacity-50 hover:opacity-80'
                         }`}
                       >
                         <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
@@ -164,22 +232,22 @@ const CarDetails = () => {
               </div>
 
               {/* Description */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 className="text-2xl font-bold text-dark mb-4">Vehicle Overview</h3>
-                <div className="prose max-w-none text-gray-600">
-                  <p>{car.description || 'No detailed description available for this vehicle. Contact us for more information.'}</p>
-                </div>
+              <div className="bg-white rounded-2xl p-7 shadow-sm border border-slate-100">
+                <h3 className="text-xl font-bold text-dark mb-4">Vehicle Overview</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">
+                  {car.description || 'No detailed description available for this vehicle. Contact us for more information.'}
+                </p>
               </div>
 
-              {/* Features List */}
+              {/* Features */}
               {car.features && car.features.length > 0 && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                  <h3 className="text-2xl font-bold text-dark mb-6">Key Features</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-2xl p-7 shadow-sm border border-slate-100">
+                  <h3 className="text-xl font-bold text-dark mb-6">Key Features</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {car.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                        <span className="text-gray-700 font-medium">{feature}</span>
+                      <div key={idx} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-dark text-sm font-medium">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -187,88 +255,56 @@ const CarDetails = () => {
               )}
             </div>
 
-            {/* Right Column (Price & Specs) */}
-            <div className="lg:col-span-1 space-y-6">
-              
-              {/* Header Card */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 sticky top-28">
-                <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-dark mb-2">{car.title}</h1>
-                  <p className="text-gray-500 text-lg">{car.year} • {car.brand} {car.model}</p>
-                </div>
-                
-                <div className="py-6 border-y border-gray-100 mb-6">
-                  <span className="block text-sm font-medium text-gray-500 uppercase tracking-widest mb-1">Our Price</span>
-                  <span className="text-4xl font-bold text-primary">{formattedPrice}</span>
+            {/* Right: Price & Specs */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 sticky top-28 overflow-hidden">
+
+                {/* Header strip */}
+                <div className="bg-secondary px-7 py-6">
+                  <h1 className="text-xl font-bold text-white mb-0.5">{car.title}</h1>
+                  <p className="text-slate-400 text-sm">{car.year} · {car.brand} {car.model}</p>
                 </div>
 
-                {/* Quick Specs Grid */}
-                <h3 className="text-lg font-bold text-dark mb-4">Specifications</h3>
-                <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Year</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.year}</span>
+                <div className="p-7">
+                  {/* Price */}
+                  <div className="mb-6 pb-6 border-b border-slate-100">
+                    <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Our Price</span>
+                    <span className="text-4xl font-bold text-primary">{formattedPrice}</span>
                   </div>
-                  
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <Gauge className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Mileage</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.kmDriven.toLocaleString()} km</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <Settings className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Trans.</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.transmission}</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <Droplet className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Fuel</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.fuel}</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <User className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Owners</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.ownership}</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">Location</span>
-                    </div>
-                    <span className="font-bold text-dark text-lg">{car.location}</span>
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="space-y-3">
-                  <a href="/#contact" className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-red-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-red-500/30">
-                    <Mail className="w-5 h-5" />
-                    Contact Seller
-                  </a>
-                  <a 
-                    href="https://wa.me/15551234567" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 rounded-xl font-bold transition-colors"
-                  >
-                    <Phone className="w-5 h-5" />
-                    WhatsApp
-                  </a>
+                  {/* Specs grid */}
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-5">Specifications</h3>
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    {specs.map(({ Icon, label, value }) => (
+                      <div key={label} className="bg-slate-50 rounded-xl p-3">
+                        <div className="flex items-center gap-1.5 text-slate-400 mb-1">
+                          <Icon className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs uppercase tracking-wider font-semibold">{label}</span>
+                        </div>
+                        <span className="font-bold text-dark text-sm">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="space-y-3">
+                    <a
+                      href="/#contact"
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-amber-400 text-secondary py-3.5 rounded-xl font-bold transition-all hover:-translate-y-0.5 shadow-md hover:shadow-amber-200/50"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Contact Seller
+                    </a>
+                    <a
+                      href="https://wa.me/15551234567"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white py-3.5 rounded-xl font-bold transition-all border border-[#25D366]/30"
+                    >
+                      <Phone className="w-4 h-4" />
+                      WhatsApp
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

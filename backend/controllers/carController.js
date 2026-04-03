@@ -64,22 +64,24 @@ const createCar = async (req, res) => {
       title,
       brand,
       model,
-      year,
-      price,
+      year: Number(year),
+      price: Number(price),
       category,
       transmission,
       fuel,
       ownership,
-      kmDriven,
+      kmDriven: Number(kmDriven),
       location,
-      features: features ? JSON.parse(features) : [],
+      features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
       description,
       images
     });
 
     const createdCar = await car.save();
+    console.log('Car created successfully:', createdCar._id);
     res.status(201).json(createdCar);
   } catch (error) {
+    console.error('Create car error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -101,17 +103,20 @@ const updateCar = async (req, res) => {
       car.title = title || car.title;
       car.brand = brand || car.brand;
       car.model = model || car.model;
-      car.year = year || car.year;
-      car.price = price || car.price;
+      car.year = year ? Number(year) : car.year;
+      car.price = price ? Number(price) : car.price;
       car.category = category || car.category;
       car.transmission = transmission || car.transmission;
       car.fuel = fuel || car.fuel;
       car.ownership = ownership || car.ownership;
-      car.kmDriven = kmDriven || car.kmDriven;
+      car.kmDriven = kmDriven ? Number(kmDriven) : car.kmDriven;
       car.location = location || car.location;
       
-      if (features) car.features = JSON.parse(features);
-      if (description) car.description = description;
+      if (features) {
+        car.features = typeof features === 'string' ? JSON.parse(features) : features;
+      }
+      
+      if (description !== undefined) car.description = description;
 
       // Handle new uploaded images
       if (req.files && req.files.length > 0) {
@@ -120,11 +125,13 @@ const updateCar = async (req, res) => {
       }
 
       const updatedCar = await car.save();
+      console.log('Car updated successfully:', updatedCar._id);
       res.json(updatedCar);
     } else {
       res.status(404).json({ message: 'Car not found' });
     }
   } catch (error) {
+    console.error('Update car error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -137,13 +144,14 @@ const deleteCar = async (req, res) => {
     const car = await Car.findById(req.params.id);
 
     if (car) {
-      // In a real app we might want to delete the images from the file system too using fs.unlink
       await car.deleteOne();
+      console.log('Car deleted successfully:', req.params.id);
       res.json({ message: 'Car removed' });
     } else {
       res.status(404).json({ message: 'Car not found' });
     }
   } catch (error) {
+    console.error('Delete car error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

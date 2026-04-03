@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { Trash2, Edit, Plus, MessageSquare, Car, LogOut, CheckCircle2 } from 'lucide-react';
+import AddCarModal from '../components/AddCarModal';
 
 const AdminDashboard = () => {
   const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
@@ -12,6 +13,8 @@ const AdminDashboard = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCar, setEditingCar] = useState(null);
 
   // Login Handler
   const handleLogin = async (e) => {
@@ -19,7 +22,7 @@ const AdminDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.post('http://localhost:5000/api/admin/login', { username, password });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/login`, { username, password });
       setToken(data.token);
       localStorage.setItem('adminToken', data.token);
     } catch (err) {
@@ -41,10 +44,10 @@ const AdminDashboard = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
       if (activeTab === 'cars') {
-        const { data } = await axios.get('http://localhost:5000/api/cars?sort=createdAt');
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/cars?sort=createdAt`);
         setCars(data);
       } else {
-        const { data } = await axios.get('http://localhost:5000/api/contact', config);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/contact`, config);
         setMessages(data);
       }
     } catch (err) {
@@ -67,7 +70,7 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this car?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/cars/${id}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/cars/${id}`, config);
         setCars(cars.filter(car => car._id !== id));
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to delete car');
@@ -75,11 +78,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleEditClick = (car) => {
+    setEditingCar(car);
+    setShowAddModal(true);
+  };
+
   const markMessageRead = async (id, currentStatus) => {
     if (currentStatus === 'Read') return;
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`http://localhost:5000/api/contact/${id}`, { status: 'Read' }, config);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/contact/${id}`, { status: 'Read' }, config);
       setMessages(messages.map(msg => msg._id === id ? { ...msg, status: 'Read' } : msg));
     } catch (err) {
       console.error('Failed to update message status', err);
@@ -90,7 +98,7 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/contact/${id}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/contact/${id}`, config);
         setMessages(messages.filter(msg => msg._id !== id));
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to delete message');
@@ -180,8 +188,10 @@ const AdminDashboard = () => {
               <div>
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                   <h2 className="text-xl font-bold text-dark">Inventory ({cars.length})</h2>
-                  {/* Plus button to add car (functionality to be implemented, e.g., an AddCarModal component) */}
-                  <button className="flex items-center gap-2 bg-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+                  <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-2 bg-dark text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                  >
                     <Plus className="w-4 h-4" /> Add New Car
                   </button>
                 </div>
@@ -200,21 +210,25 @@ const AdminDashboard = () => {
                       {cars.map((car) => (
                         <tr key={car._id} className="hover:bg-gray-50 transition-colors">
                           <td className="p-4">
-                            <img src={car.images && car.images[0] ? `http://localhost:5000${car.images[0]}` : 'https://via.placeholder.com/80x60'} alt={car.title} className="w-16 h-12 object-cover rounded-md" />
+                            <img 
+                              src={car.images && car.images.length > 0 ? (car.images[0].startsWith('http') ? car.images[0] : `${import.meta.env.VITE_API_URL}${car.images[0]}`) : 'https://via.placeholder.com/80x60'} 
+                              alt={car.title} 
+                              className="w-16 h-12 object-cover rounded-md" 
+                            />
                           </td>
                           <td className="p-4">
                             <p className="font-bold text-dark">{car.title}</p>
                             <p className="text-xs text-gray-500">{car.year} • {car.kmDriven} km</p>
                           </td>
                           <td className="p-4 font-medium text-primary line-clamp-1 truncate block w-24">
-                            ₹{car.price.toLocaleString('en-IN')}
+                            ₹{car.price ? (typeof car.price === 'number' ? car.price.toLocaleString('en-IN') : car.price) : '0'}
                           </td>
                           <td className="p-4">
                             <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">{car.category}</span>
                           </td>
                           <td className="p-4 text-right">
                             <div className="flex justify-end gap-3">
-                              <button className="text-blue-500 hover:bg-blue-50 p-2 rounded-md transition-colors" title="Edit (Coming soon)">
+                              <button onClick={() => handleEditClick(car)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-md transition-colors" title="Edit">
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button onClick={() => handleDeleteCar(car._id)} className="text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors" title="Delete">
@@ -284,6 +298,17 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      <AddCarModal 
+        isOpen={showAddModal} 
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingCar(null);
+        }} 
+        onSuccess={fetchData}
+        token={token}
+        carToEdit={editingCar}
+      />
     </div>
   );
 };

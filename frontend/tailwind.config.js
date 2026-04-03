@@ -7,13 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#E63946', // A vibrant red for premium sports feel
-        secondary: '#1D3557', // Deep blue
-        dark: '#111827', // Very dark gray for sleek backgrounds
-        light: '#F3F4F6'
+        primary: '#C9A84C',   // Warm gold – premium accent
+        secondary: '#1A2B4A', // Deep navy – authority & trust
+        dark: '#0F172A',      // Slate 900 – rich body text & headings
+        light: '#F8F9FA',     // Off-white – clean backgrounds
+        navy: '#1A2B4A',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'sans-serif'],
       }
     },
   },

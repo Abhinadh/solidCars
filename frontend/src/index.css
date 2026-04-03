@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,18 +8,34 @@
   body {
     @apply bg-light text-dark font-sans antialiased;
   }
+
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+  }
 }
 
 @layer utilities {
   .clip-path-slant {
     clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
   }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Slick Carousel Overrides */
 .slick-dots li button:before {
-  color: #fff !important;
-  font-size: 12px !important;
+  color: #C9A84C !important;
+  font-size: 10px !important;
+  opacity: 0.5 !important;
+}
+.slick-dots li.slick-active button:before {
+  opacity: 1 !important;
+  color: #C9A84C !important;
 }
 
 .slick-prev, .slick-next {
