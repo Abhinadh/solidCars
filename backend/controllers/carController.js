@@ -63,6 +63,7 @@ const createCar = async (req, res) => {
     const car = new Car({
       brand,
       model,
+      variant,
       year: Number(year),
       price: Number(price),
       category,
