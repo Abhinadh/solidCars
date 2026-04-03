@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { Trash2, Edit, Plus, MessageSquare, Car, LogOut, CheckCircle2 } from 'lucide-react';
+import AddCarModal from '../components/AddCarModal';
 
 const AdminDashboard = () => {
   const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
@@ -32,7 +33,7 @@ const AdminDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.post('http://localhost:5000/api/admin/login', { username, password });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/login`, { username, password });
       setToken(data.token);
       localStorage.setItem('adminToken', data.token);
     } catch (err) {
@@ -54,10 +55,10 @@ const AdminDashboard = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
       if (activeTab === 'cars') {
-        const { data } = await axios.get('http://localhost:5000/api/cars?sort=createdAt');
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/cars?sort=createdAt`);
         setCars(data);
       } else {
-        const { data } = await axios.get('http://localhost:5000/api/contact', config);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/contact`, config);
         setMessages(data);
       }
     } catch (err) {
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this car?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/cars/${id}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/cars/${id}`, config);
         setCars(cars.filter(car => car._id !== id));
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to delete car');
@@ -88,11 +89,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleEditClick = (car) => {
+    setEditingCar(car);
+    setShowAddModal(true);
+  };
+
   const markMessageRead = async (id, currentStatus) => {
     if (currentStatus === 'Read') return;
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`http://localhost:5000/api/contact/${id}`, { status: 'Read' }, config);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/contact/${id}`, { status: 'Read' }, config);
       setMessages(messages.map(msg => msg._id === id ? { ...msg, status: 'Read' } : msg));
     } catch (err) {
       console.error('Failed to update message status', err);
@@ -103,7 +109,7 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/contact/${id}`, config);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/contact/${id}`, config);
         setMessages(messages.filter(msg => msg._id !== id));
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to delete message');
@@ -326,7 +332,7 @@ const AdminDashboard = () => {
                             <p className="text-xs text-gray-400">{car.year} • {car.kmDriven} km</p>
                           </td>
                           <td className="p-4 font-medium text-primary line-clamp-1 truncate block w-24">
-                            ₹{car.price.toLocaleString('en-IN')}
+                            ₹{car.price ? (typeof car.price === 'number' ? car.price.toLocaleString('en-IN') : car.price) : '0'}
                           </td>
                           <td className="p-4">
                             <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded text-xs font-medium">{car.category}</span>

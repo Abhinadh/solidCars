@@ -7,8 +7,20 @@ const About = () => {
   return (
     <>
       <Helmet>
-        <title>About Us | Solid Cars</title>
-        <meta name="description" content="Learn more about Solid Cars, our mission, and why we are the trusted choice for premium used vehicles." />
+        <title>About Us | Solid Cars - Premium Pre-Owned Professionals</title>
+        <meta name="description" content="Learn more about Solid Cars, our mission, and why we are the trusted choice for premium used vehicles with a decade of excellence." />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:title" content="About Us | Solid Cars - Premium Pre-Owned Professionals" />
+        <meta property="og:description" content="Learn more about Solid Cars, our mission, and why we are the trusted choice for premium used vehicles with a decade of excellence." />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop" />
+
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={window.location.href} />
+        <meta property="twitter:title" content="About Us | Solid Cars - Premium Pre-Owned Professionals" />
+        <meta property="twitter:description" content="Learn more about Solid Cars, our mission, and why we are the trusted choice for premium used vehicles with a decade of excellence." />
+        <meta property="twitter:image" content="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop" />
       </Helmet>
       
       {/* Header */}
